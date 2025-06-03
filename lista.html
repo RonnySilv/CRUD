@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ONG Resgate Animal - Lista de Animais</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f4f4;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            background: #fff;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 800px; /* Pode ser um pouco maior para a lista */
+        }
+
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        button, .btn-link {
+            background-color: #3498db;
+            color: white;
+            padding: 10px 18px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.3s ease;
+            margin-right: 10px;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .btn-link.add-new {
+             background-color: #2ecc71; /* Verde para adicionar novo */
+        }
+        .btn-link.add-new:hover {
+            background-color: #27ae60;
+        }
+
+
+        button:hover, .btn-link:hover {
+            background-color: #2980b9;
+        }
+
+        button.delete {
+            background-color: #e74c3c;
+        }
+
+        button.delete:hover {
+            background-color: #c0392b;
+        }
+
+        button.edit {
+            background-color: #f39c12;
+        }
+
+        button.edit:hover {
+            background-color: #e67e22;
+        }
+
+        #animalList {
+            margin-top: 30px;
+        }
+
+        .animal-item {
+            background-color: #ecf0f1;
+            padding: 15px;
+            border: 1px solid #bdc3c7;
+            border-radius: 4px;
+            margin-bottom: 10px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .animal-item h3 {
+            margin-top: 0;
+            color: #2c3e50;
+        }
+
+        .animal-item p {
+            margin: 5px 0;
+            color: #7f8c8d;
+        }
+
+        .animal-item p strong {
+            color: #34495e;
+        }
+
+        .animal-actions {
+            margin-top: 10px;
+            align-self: flex-end;
+        }
+        .navigation-buttons {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Animais Cadastrados  목록</h1>
+        <div class="navigation-buttons">
+             <a href="index.html" class="btn-link add-new">Cadastrar Novo Animal +</a>
+        </div>
+
+        <div id="animalList">
+            <p id="nenhumAnimal" style="text-align: center; color: #777;">Nenhum animal cadastrado ainda.</p>
+        </div>
+    </div>
+
+    <script>
+        const animalListDiv = document.getElementById('animalList');
+        const nenhumAnimalP = document.getElementById('nenhumAnimal');
+        let animais = JSON.parse(localStorage.getItem('animaisDB')) || [];
+
+        function formatarData(dataISO) {
+            if (!dataISO) return '';
+            const [ano, mes, dia] = dataISO.split('-');
+            return `${dia}/${mes}/${ano}`;
+        }
+
+        function renderizarAnimais() {
+            animalListDiv.innerHTML = '';
+            if (animais.length === 0) {
+                nenhumAnimalP.style.display = 'block';
+                animalListDiv.appendChild(nenhumAnimalP);
+                return;
+            }
+            nenhumAnimalP.style.display = 'none';
+
+            animais.forEach(animal => {
+                const animalItem = document.createElement('div');
+                animalItem.classList.add('animal-item');
+                animalItem.innerHTML = `
+                    <h3>${animal.nome}</h3>
+                    <p><strong>Data do Resgate:</strong> ${formatarData(animal.dataResgate)}</p>
+                    <p><strong>Sexo:</strong> ${animal.sexo}</p>
+                    <p><strong>Informações Extras:</strong> ${animal.infoExtra || 'Nenhuma'}</p>
+                    <div class="animal-actions">
+                        <button class="edit" onclick="editarAnimal('${animal.id}')">Editar</button>
+                        <button class="delete" onclick="deletarAnimal('${animal.id}')">Excluir</button>
+                    </div>
+                `;
+                animalListDiv.appendChild(animalItem);
+            });
+        }
+
+        window.editarAnimal = function(id) {
+            // Redireciona para a página de cadastro com o ID do animal para edição
+            window.location.href = `index.html?id=${id}`;
+        }
+
+        window.deletarAnimal = function(id) {
+            if (confirm('Tem certeza que deseja excluir este animal?')) {
+                animais = animais.filter(animal => animal.id !== id);
+                localStorage.setItem('animaisDB', JSON.stringify(animais));
+                renderizarAnimais(); // Re-renderiza a lista atualizada
+            }
+        }
+
+        // Carregar e renderizar ao iniciar a página
+        document.addEventListener('DOMContentLoaded', renderizarAnimais);
+    </script>
+</body>
+</html>

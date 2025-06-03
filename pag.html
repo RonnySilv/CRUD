@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ONG Resgate Animal - Cadastro</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f4f4;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            background: #fff;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 700px;
+            margin-bottom: 20px; /* Espaço para o botão de visualização */
+        }
+
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+
+        input[type="text"],
+        input[type="date"],
+        select,
+        textarea {
+            width: calc(100% - 22px);
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 1rem;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        button, .btn-link {
+            background-color: #3498db;
+            color: white;
+            padding: 10px 18px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.3s ease;
+            margin-right: 10px;
+            text-decoration: none; /* Para o .btn-link */
+            display: inline-block; /* Para o .btn-link */
+        }
+
+        button:hover, .btn-link:hover {
+            background-color: #2980b9;
+        }
+
+        .form-buttons {
+            display: flex;
+            justify-content: flex-start;
+            margin-bottom: 20px; /* Espaço antes do botão de visualização, se o botão de visualizar for aqui */
+        }
+        .navigation-buttons {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        /* Estilo para ocultar ID */
+        input[type="hidden"] {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Cadastro de Animais Resgatados 🐕🐈</h1>
+
+        <form id="animalForm">
+            <input type="hidden" id="animalId"> <div>
+                <label for="nome">Nome do Animal:</label>
+                <input type="text" id="nome" required>
+            </div>
+            <div>
+                <label for="dataResgate">Data do Resgate:</label>
+                <input type="date" id="dataResgate" required>
+            </div>
+            <div>
+                <label for="sexo">Sexo:</label>
+                <select id="sexo" required>
+                    <option value="">Selecione</option>
+                    <option value="Macho">Macho</option>
+                    <option value="Fêmea">Fêmea</option>
+                    <option value="Não identificado">Não identificado</option>
+                </select>
+            </div>
+            <div>
+                <label for="infoExtra">Informação Extra:</label>
+                <textarea id="infoExtra"></textarea>
+            </div>
+            <div class="form-buttons">
+                <button type="submit" id="btnSalvar">Salvar</button>
+                <button type="button" id="btnCancelar" style="display:none;">Cancelar Edição</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="navigation-buttons">
+        <a href="listagem.html" class="btn-link">Ver Animais Cadastrados 🐾</a>
+    </div>
+
+    <script>
+        const animalForm = document.getElementById('animalForm');
+        const animalIdInput = document.getElementById('animalId');
+        const nomeInput = document.getElementById('nome');
+        const dataResgateInput = document.getElementById('dataResgate');
+        const sexoInput = document.getElementById('sexo');
+        const infoExtraInput = document.getElementById('infoExtra');
+        const btnSalvar = document.getElementById('btnSalvar');
+        const btnCancelar = document.getElementById('btnCancelar');
+
+        let animais = JSON.parse(localStorage.getItem('animaisDB')) || [];
+        let idParaEditar = new URLSearchParams(window.location.search).get('id'); // Pega o ID da URL
+
+        // Se houver um ID na URL, preenche o formulário para edição
+        if (idParaEditar) {
+            const animalParaEditar = animais.find(animal => animal.id === idParaEditar);
+            if (animalParaEditar) {
+                animalIdInput.value = animalParaEditar.id;
+                nomeInput.value = animalParaEditar.nome;
+                dataResgateInput.value = animalParaEditar.dataResgate;
+                sexoInput.value = animalParaEditar.sexo;
+                infoExtraInput.value = animalParaEditar.infoExtra || '';
+
+                btnSalvar.textContent = 'Atualizar';
+                btnCancelar.style.display = 'inline-block';
+            } else {
+                // Se o ID não for encontrado, limpa o parâmetro para evitar confusão
+                idParaEditar = null;
+            }
+        }
+
+        animalForm.addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            const id = animalIdInput.value;
+            const nome = nomeInput.value.trim();
+            const dataResgate = dataResgateInput.value;
+            const sexo = sexoInput.value;
+            const infoExtra = infoExtraInput.value.trim();
+
+            if (!nome || !dataResgate || !sexo) {
+                alert('Por favor, preencha todos os campos obrigatórios (Nome, Data do Resgate, Sexo).');
+                return;
+            }
+
+            if (idParaEditar && id === idParaEditar) { // Atualizar animal existente
+                const index = animais.findIndex(animal => animal.id === id);
+                if (index !== -1) {
+                    animais[index] = { ...animais[index], nome, dataResgate, sexo, infoExtra };
+                }
+            } else { // Adicionar novo animal
+                const novoAnimal = {
+                    id: Date.now().toString(),
+                    nome,
+                    dataResgate,
+                    sexo,
+                    infoExtra
+                };
+                animais.push(novoAnimal);
+            }
+
+            localStorage.setItem('animaisDB', JSON.stringify(animais));
+            alert(idParaEditar ? 'Animal atualizado com sucesso!' : 'Animal cadastrado com sucesso!');
+            animalForm.reset();
+            animalIdInput.value = '';
+            idParaEditar = null; // Limpa o ID de edição
+            btnSalvar.textContent = 'Salvar';
+            btnCancelar.style.display = 'none';
+
+            // Opcional: Redirecionar para a listagem após salvar/atualizar
+            // window.location.href = 'listagem.html';
+        });
+
+        btnCancelar.addEventListener('click', function() {
+            animalForm.reset();
+            animalIdInput.value = '';
+            idParaEditar = null;
+            btnSalvar.textContent = 'Salvar';
+            btnCancelar.style.display = 'none';
+            // Remove o parâmetro 'id' da URL para não tentar carregar para edição novamente
+            window.history.replaceState({}, document.title, window.location.pathname);
+        });
+
+    </script>
+</body>
+</html>
